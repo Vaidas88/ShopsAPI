@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using ShopsAPI.Dtos;
 using ShopsAPI.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShopsAPI
 {
@@ -14,7 +9,11 @@ namespace ShopsAPI
         public MappingProfile()
         {
             CreateMap<Shop, ShopDto>().ReverseMap();
+            CreateMap<Shop, GetShopDto>().ReverseMap();
             CreateMap<CreateShopDto, Shop>();
+            CreateMap<GetShopItemDto, ShopItem>().ReverseMap();
+            CreateMap<ShopItemDto, ShopItem>().ReverseMap();
+            CreateMap<CreateShopItemDto, ShopItem>();
         }
     }
 }

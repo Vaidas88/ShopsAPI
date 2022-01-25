@@ -9,7 +9,6 @@ namespace ShopsAPI.Models
         public int Id { get; set; }
 
         [Required]
-        [MinLength(4)]
         public string Name { get; set; }
     }
 }

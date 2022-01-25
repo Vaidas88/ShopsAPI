@@ -6,19 +6,19 @@ using System;
 namespace ShopsAPI.Controllers
 {
     [Route("[controller]")]
-    public class ShopController : ControllerBase
+    public class ShopItemController : ControllerBase
     {
-        private readonly ShopService _shopService;
+        private readonly ShopItemService _shopItemService;
 
-        public ShopController(ShopService shopService)
+        public ShopItemController(ShopItemService shopItemService)
         {
-            _shopService = shopService;
+            _shopItemService = shopItemService;
         }
 
         [HttpGet]
         public IActionResult GetAll()
         {
-            return Ok(_shopService.GetAll());
+            return Ok(_shopItemService.GetAll());
         }
 
         [HttpGet("{id}")]
@@ -26,7 +26,7 @@ namespace ShopsAPI.Controllers
         {
             try
             {
-                return Ok(_shopService.GetById(id));
+                return Ok(_shopItemService.GetById(id));
             }
             catch (ArgumentNullException ex)
             {
@@ -39,13 +39,13 @@ namespace ShopsAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(CreateShopDto createShopDto)
+        public IActionResult Create(CreateShopItemDto createShopItemDto)
         {
             try
             {
-                _shopService.Create(createShopDto);
+                _shopItemService.Create(createShopItemDto);
 
-                return Created("", "Shop created successfully.");
+                return Created("", "Shop item created successfully.");
             }
             catch (ArgumentNullException ex)
             {
@@ -62,13 +62,13 @@ namespace ShopsAPI.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(EditShopDto editShopDto)
+        public IActionResult Edit(EditShopItemDto editShopItemDto)
         {
             try
             {
-                _shopService.Update(editShopDto);
+                _shopItemService.Update(editShopItemDto);
 
-                return Ok($"Shop with id: {editShopDto.Id} was updated successfully.");
+                return Ok($"Shop item with id: {editShopItemDto.Id} was updated successfully.");
             }
             catch (ArgumentNullException ex)
             {
@@ -89,9 +89,9 @@ namespace ShopsAPI.Controllers
         {
             try
             {
-                _shopService.Delete(id);
+                _shopItemService.Delete(id);
 
-                return Ok($"Shop with id: {id} was deleted successfully.");
+                return Ok($"Shop item with id: {id} was deleted successfully.");
             }
             catch (ArgumentNullException ex)
             {
