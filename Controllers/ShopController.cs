@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ShopsAPI.Controllers
 {
-    [ApiController]
+
     [Route("[controller]")]
     public class ShopController : ControllerBase
     {
@@ -34,7 +34,7 @@ namespace ShopsAPI.Controllers
             {
                 return Ok(_shopService.GetById(id));
             }
-            catch (ArgumentException ex)
+            catch (ArgumentNullException ex)
             {
                 return NotFound(ex.Message);
             }
@@ -53,9 +53,13 @@ namespace ShopsAPI.Controllers
 
                 return Created("", "Shop created successfully.");
             }
-            catch (ArgumentException ex)
+            catch (ArgumentNullException ex)
             {
                 return StatusCode(409, ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception)
             {
@@ -66,13 +70,39 @@ namespace ShopsAPI.Controllers
         [HttpPut]
         public IActionResult Edit(EditShopDto editShopDto)
         {
-            return Ok();
+            try
+            {
+                _shopService.Update(editShopDto);
+
+                return Ok($"Shop with id: {editShopDto.Id} was updated successfully.");
+            }
+            catch (ArgumentNullException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(409, ex.Message);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Bad request.");
+            }
         }
 
         [HttpDelete]
         public IActionResult Delete(int id)
         {
-            return Ok();
+            try
+            {
+                _shopService.Delete(id);
+
+                return Ok($"Shop with id: {id} was deleted successfully.");
+            }
+            catch (ArgumentNullException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }

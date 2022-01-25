@@ -2,6 +2,7 @@
 using ShopsAPI.Dtos;
 using ShopsAPI.Models;
 using ShopsAPI.Repositories;
+using ShopsAPI.Validators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace ShopsAPI.Services
 {
     public class ShopService
     {
+        private readonly ShopValidator _shopValidator = new ShopValidator();
         private readonly IMapper _mapper;
         private readonly ShopRepo _shopRepo;
 
@@ -39,7 +41,7 @@ namespace ShopsAPI.Services
 
             if (shop == null)
             {
-                throw new ArgumentException("Shop not found.");
+                throw new ArgumentNullException("Shop not found.");
             }
 
             return _mapper.Map<ShopDto>(shop);
@@ -47,12 +49,10 @@ namespace ShopsAPI.Services
 
         public void Create(CreateShopDto createShopDto)
         {
-            if (!isNameUnique(createShopDto.Name))
-            {
-                throw new ArgumentException($"Shop with name: '{createShopDto.Name}' already exists.");
-            }
-
             var shop = _mapper.Map<Shop>(createShopDto);
+
+            validateShop(shop);
+
             _shopRepo.Create(shop);
             _shopRepo.SaveChanges();
         }
@@ -63,15 +63,12 @@ namespace ShopsAPI.Services
 
             if (shop == null)
             {
-                throw new ArgumentException($"There is no shop with Id: {editShopDto.Id}. Nothing to update.");
-            }
-
-            if (!isNameUnique(editShopDto.Name))
-            {
-                throw new ArgumentException($"Shop with name: '{editShopDto.Name}' already exists. Can't update to this new name.");
+                throw new ArgumentNullException($"There is no shop with Id: {editShopDto.Id}. Nothing to update.");
             }
 
             shop.Name = editShopDto.Name;
+
+            validateShop(shop);
 
             _shopRepo.Update(shop);
             _shopRepo.SaveChanges();
@@ -83,7 +80,7 @@ namespace ShopsAPI.Services
 
             if (shop == null)
             {
-                throw new ArgumentException($"There is no shop with Id: {id}. Nothing to delete.");
+                throw new ArgumentNullException($"There is no shop with Id: {id}. Nothing to delete.");
             }
 
             _shopRepo.Delete(shop);
@@ -98,6 +95,33 @@ namespace ShopsAPI.Services
             }
 
             return true;
+        }
+
+        private void validateShop(Shop shop)
+        {
+            if (!isNameUnique(shop.Name))
+            {
+                throw new ArgumentException($"Shop with name: '{shop.Name}' already exists. Can't update to this new name.");
+            }
+
+            var shopValidated = _shopValidator.Validate(shop);
+
+            if (!shopValidated.IsValid)
+            {
+                throw new ArgumentException(errorsToString(shopValidated.Errors));
+            }
+        }
+
+        private string errorsToString(List<FluentValidation.Results.ValidationFailure> errors)
+        {
+            string errorsString = string.Empty;
+
+            foreach (var error in errors)
+            {
+                errorsString = errorsString + $"Error for: {error.PropertyName}, error was: {error.ErrorMessage}\n";
+            }
+
+            return errorsString;
         }
     }
 }
