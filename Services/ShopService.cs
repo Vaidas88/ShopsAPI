@@ -5,6 +5,7 @@ using ShopsAPI.Repositories;
 using ShopsAPI.Validators;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShopsAPI.Services
 {
@@ -20,9 +21,9 @@ namespace ShopsAPI.Services
             _shopRepo = shopRepo;
         }
 
-        public List<ShopDto> GetAll()
+        public async Task<List<ShopDto>> GetAllAsync()
         {
-            var shops = _shopRepo.GetAll();
+            var shops = await _shopRepo.GetAllAsync();
             List<ShopDto> shopsDto = new List<ShopDto>();
 
             shops.ForEach(shop => shopsDto.Add(
@@ -32,9 +33,9 @@ namespace ShopsAPI.Services
             return shopsDto;
         }
 
-        public ShopDto GetById(int id)
+        public async Task<ShopDto> GetByIdAsync(int id)
         {
-            var shop = _shopRepo.GetById(id);
+            var shop = await _shopRepo.GetByIdAsync(id);
 
             if (shop == null)
             {
@@ -44,19 +45,18 @@ namespace ShopsAPI.Services
             return _mapper.Map<ShopDto>(shop);
         }
 
-        public void Create(CreateShopDto createShopDto)
+        public async Task CreateAsync(CreateShopDto createShopDto)
         {
             var shop = _mapper.Map<Shop>(createShopDto);
 
-            validateShop(shop);
+            await validateShop(shop);
 
-            _shopRepo.Create(shop);
-            _shopRepo.SaveChanges();
+            await _shopRepo.CreateAsync(shop);
         }
 
-        public void Update(EditShopDto editShopDto)
+        public async Task UpdateAsync(EditShopDto editShopDto)
         {
-            var shop = _shopRepo.GetById(editShopDto.Id);
+            var shop = await _shopRepo.GetByIdAsync(editShopDto.Id);
 
             if (shop == null)
             {
@@ -65,28 +65,27 @@ namespace ShopsAPI.Services
 
             shop.Name = editShopDto.Name;
 
-            validateShop(shop);
+            await validateShop(shop);
 
-            _shopRepo.Update(shop);
-            _shopRepo.SaveChanges();
+            await _shopRepo.UpdateAsync(shop);
         }
 
-        public void Delete(int id)
+        public async Task DeleteAsync(int id)
         {
-            var shop = _shopRepo.GetById(id);
+            var shop = await _shopRepo.GetByIdAsync(id);
 
             if (shop == null)
             {
                 throw new ArgumentNullException($"There is no shop with Id: {id}. Nothing to delete.");
             }
 
-            _shopRepo.Delete(shop);
-            _shopRepo.SaveChanges();
+            await _shopRepo.DeleteAsync(shop);
         }
 
-        private bool isNameUnique(string name)
+        private async Task<bool> isNameUnique(string name)
         {
-            if (_shopRepo.FindByName(name) != null)
+            var shop = await _shopRepo.FindByNameAsync(name);
+            if (shop != null)
             {
                 return false;
             }
@@ -94,14 +93,15 @@ namespace ShopsAPI.Services
             return true;
         }
 
-        private void validateShop(Shop shop)
+        private async Task validateShop(Shop shop)
         {
-            if (!isNameUnique(shop.Name))
+            var nameUnique = await isNameUnique(shop.Name);
+            if (!nameUnique)
             {
                 throw new ArgumentException($"Shop with name: '{shop.Name}' already exists. Can't update to this new name.");
             }
 
-            var shopValidated = _shopValidator.Validate(shop);
+            var shopValidated = await _shopValidator.ValidateAsync(shop);
 
             if (!shopValidated.IsValid)
             {
@@ -115,7 +115,7 @@ namespace ShopsAPI.Services
 
             foreach (var error in errors)
             {
-                errorsString = errorsString + $"Error for: {error.PropertyName}, error was: {error.ErrorMessage}\n";
+                errorsString += $"Error for: {error.PropertyName}, error was: {error.ErrorMessage}\n";
             }
 
             return errorsString;

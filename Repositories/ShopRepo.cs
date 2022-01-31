@@ -3,6 +3,7 @@ using ShopsAPI.Controllers.Data;
 using ShopsAPI.Models;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ShopsAPI.Repositories
 {
@@ -12,14 +13,9 @@ namespace ShopsAPI.Repositories
         {
         }
 
-        public override List<Shop> GetAll()
+        public override async Task<List<Shop>> GetAllAsync()
         {
-            return _dbSet.Include(shop => shop.ShopItems).ToList();
-        }
-
-        public Shop FindByName(string name)
-        {
-            return _dbSet.Where(shop => shop.Name == name).SingleOrDefault();
+            return await _dbSet.Include(shop => shop.ShopItems).ToListAsync();
         }
     }
 }

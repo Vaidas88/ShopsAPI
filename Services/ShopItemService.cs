@@ -5,6 +5,7 @@ using ShopsAPI.Repositories;
 using ShopsAPI.Validators;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShopsAPI.Services
 {
@@ -22,9 +23,9 @@ namespace ShopsAPI.Services
             _shopRepo = shopRepo;
         }
 
-        public List<GetShopItemDto> GetAll()
+        public async Task<List<GetShopItemDto>> GetAllAsync()
         {
-            var shopItems = _shopItemRepo.GetAll();
+            var shopItems = await _shopItemRepo.GetAllAsync();
             List<GetShopItemDto> shopItemsDto = new List<GetShopItemDto>();
 
             shopItems.ForEach(shopItem => shopItemsDto.Add(
@@ -34,9 +35,9 @@ namespace ShopsAPI.Services
             return shopItemsDto;
         }
 
-        public GetShopItemDto GetById(int id)
+        public async Task<GetShopItemDto> GetByIdAsync(int id)
         {
-            var shopItem = _shopItemRepo.GetById(id);
+            var shopItem = await _shopItemRepo.GetByIdAsync(id);
 
             if (shopItem == null)
             {
@@ -46,20 +47,19 @@ namespace ShopsAPI.Services
             return _mapper.Map<GetShopItemDto>(shopItem);
         }
 
-        public void Create(CreateShopItemDto createShopItemDto)
+        public async Task CreateAsync(CreateShopItemDto createShopItemDto)
         {
             var shopItem = _mapper.Map<ShopItem>(createShopItemDto);
-            shopItem.Shop = _shopRepo.GetById(createShopItemDto.ShopId);
+            shopItem.Shop = await _shopRepo.GetByIdAsync(createShopItemDto.ShopId);
 
-            validateShopItem(shopItem);
+            await validateShopItem(shopItem);
 
-            _shopItemRepo.Create(shopItem);
-            _shopItemRepo.SaveChanges();
+            await _shopItemRepo.CreateAsync(shopItem);
         }
 
-        public void Update(EditShopItemDto editShopItemDto)
+        public async Task UpdateAsync(EditShopItemDto editShopItemDto)
         {
-            var shopItem = _shopItemRepo.GetById(editShopItemDto.Id);
+            var shopItem = await _shopItemRepo.GetByIdAsync(editShopItemDto.Id);
 
             if (shopItem == null)
             {
@@ -75,30 +75,29 @@ namespace ShopsAPI.Services
                 shopItem.Price = editShopItemDto.Price;
             }
 
-            shopItem.Shop = _shopRepo.GetById(editShopItemDto.ShopId);
+            shopItem.Shop = await _shopRepo.GetByIdAsync(editShopItemDto.ShopId);
 
-            validateShopItem(shopItem);
+            await validateShopItem(shopItem);
 
-            _shopItemRepo.Update(shopItem);
-            _shopItemRepo.SaveChanges();
+            await _shopItemRepo.UpdateAsync(shopItem);
         }
 
-        public void Delete(int id)
+        public async Task DeleteAsync(int id)
         {
-            var shopItem = _shopItemRepo.GetById(id);
+            var shopItem = await _shopItemRepo.GetByIdAsync(id);
 
             if (shopItem == null)
             {
                 throw new ArgumentNullException($"There is no shop item with Id: {id}. Nothing to delete.");
             }
 
-            _shopItemRepo.Delete(shopItem);
-            _shopItemRepo.SaveChanges();
+            await _shopItemRepo.DeleteAsync(shopItem);
         }
 
-        private bool isNameUnique(int id, string name)
+        private async Task<bool> isNameUnique(int id, string name)
         {
-            var shopItem = _shopItemRepo.FindByName(name);
+            var shopItem = await _shopItemRepo.FindByNameAsync(name);
+
             if (shopItem != null && id != shopItem.Id)
             {
                 return false;
@@ -107,14 +106,16 @@ namespace ShopsAPI.Services
             return true;
         }
 
-        private void validateShopItem(ShopItem shopItem)
+        private async Task validateShopItem(ShopItem shopItem)
         {
-            if (!isNameUnique(shopItem.Id, shopItem.Name))
+            var nameUnique = await isNameUnique(shopItem.Id, shopItem.Name);
+
+            if (!nameUnique)
             {
                 throw new ArgumentException($"Shop item with name: '{shopItem.Name}' already exists. Can't update to this new name.");
             }
 
-            var shopItemValidated = _shopItemValidator.Validate(shopItem);
+            var shopItemValidated = await _shopItemValidator.ValidateAsync(shopItem);
 
             if (!shopItemValidated.IsValid)
             {
@@ -128,7 +129,7 @@ namespace ShopsAPI.Services
 
             foreach (var error in errors)
             {
-                errorsString = errorsString + $"Error for: {error.PropertyName}, error was: {error.ErrorMessage}\n";
+                errorsString += $"Error for: {error.PropertyName}, error was: {error.ErrorMessage}\n";
             }
 
             return errorsString;

@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShopsAPI.Controllers.Data;
+using ShopsAPI.Models;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ShopsAPI.Repositories
 {
-    public abstract class GenericRepo<T> where T : class
+    public abstract class GenericRepo<T> where T : Entity
     {
         internal DataContext _context;
         internal DbSet<T> _dbSet;
@@ -16,34 +18,37 @@ namespace ShopsAPI.Repositories
             _dbSet = _context.Set<T>();
         }
 
-        public virtual List<T> GetAll()
+        public virtual async Task<List<T>> GetAllAsync()
         {
-            return _dbSet.ToList();
+            return await _dbSet.ToListAsync();
         }
 
-        public virtual T GetById(int id)
+        public virtual async Task<T> GetByIdAsync(int id)
         {
-            return _dbSet.Find(id);
+            return await _dbSet.FindAsync(id);
         }
 
-        public virtual void Create(T entity)
+        public virtual async Task<T> FindByNameAsync(string name)
+        {
+            return await _dbSet.Where(entity => entity.Name == name).SingleOrDefaultAsync();
+        }
+
+        public virtual async Task CreateAsync(T entity)
         {
             _dbSet.Add(entity);
+            await _context.SaveChangesAsync();
         }
 
-        public virtual void Update(T entity)
+        public virtual async Task UpdateAsync(T entity)
         {
             _dbSet.Update(entity);
+            await _context.SaveChangesAsync();
         }
 
-        public virtual void Delete(T entity)
+        public virtual async Task DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
-        }
-
-        public virtual void SaveChanges()
-        {
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

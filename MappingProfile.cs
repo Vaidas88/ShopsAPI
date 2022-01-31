@@ -9,7 +9,6 @@ namespace ShopsAPI
         public MappingProfile()
         {
             CreateMap<Shop, ShopDto>().ReverseMap();
-            CreateMap<Shop, GetShopDto>().ReverseMap();
             CreateMap<CreateShopDto, Shop>();
             CreateMap<GetShopItemDto, ShopItem>().ReverseMap();
             CreateMap<ShopItemDto, ShopItem>().ReverseMap();

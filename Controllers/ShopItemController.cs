@@ -2,6 +2,7 @@
 using ShopsAPI.Dtos;
 using ShopsAPI.Services;
 using System;
+using System.Threading.Tasks;
 
 namespace ShopsAPI.Controllers
 {
@@ -16,17 +17,17 @@ namespace ShopsAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            return Ok(_shopItemService.GetAll());
+            return Ok(await _shopItemService.GetAllAsync());
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
             try
             {
-                return Ok(_shopItemService.GetById(id));
+                return Ok(await _shopItemService.GetByIdAsync(id));
             }
             catch (ArgumentNullException ex)
             {
@@ -39,11 +40,11 @@ namespace ShopsAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(CreateShopItemDto createShopItemDto)
+        public async Task<IActionResult> Create(CreateShopItemDto createShopItemDto)
         {
             try
             {
-                _shopItemService.Create(createShopItemDto);
+                await _shopItemService.CreateAsync(createShopItemDto);
 
                 return Created("", "Shop item created successfully.");
             }
@@ -62,11 +63,11 @@ namespace ShopsAPI.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(EditShopItemDto editShopItemDto)
+        public async Task<IActionResult> Edit(EditShopItemDto editShopItemDto)
         {
             try
             {
-                _shopItemService.Update(editShopItemDto);
+                await _shopItemService.UpdateAsync(editShopItemDto);
 
                 return Ok($"Shop item with id: {editShopItemDto.Id} was updated successfully.");
             }
@@ -85,11 +86,11 @@ namespace ShopsAPI.Controllers
         }
 
         [HttpDelete]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                _shopItemService.Delete(id);
+                await _shopItemService.DeleteAsync(id);
 
                 return Ok($"Shop item with id: {id} was deleted successfully.");
             }
