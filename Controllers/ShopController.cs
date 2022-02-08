@@ -40,13 +40,13 @@ namespace ShopsAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateShopDto createShopDto)
+        public async Task<IActionResult> Create([FromBody] CreateShopDto createShopDto)
         {
             try
             {
                 await _shopService.CreateAsync(createShopDto);
 
-                return Created("", "Shop created successfully.");
+                return StatusCode(201, "Shop created successfully.");
             }
             catch (ArgumentNullException ex)
             {
@@ -56,7 +56,7 @@ namespace ShopsAPI.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return BadRequest("Bad request.");
             }
